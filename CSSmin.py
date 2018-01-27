@@ -212,17 +212,36 @@ def cssmin(css, wrap=None):
 
 #Finished defining functions. Now execute.
 
-# Minify original file 
 fileContent = editor.getText()
 minifiedCSS = cssmin(fileContent)
 
-# separate filename from its extension and add "min" word
-# example: "styles.1.506.css" to "styles.1.506.min.css"
-fileName = notepad.getCurrentFilename().split(".")
-fileExt  = fileName[-1]
-fileName = ".".join(fileName[:-1])+".min."+fileExt
+originalFilename=notepad.getCurrentFilename()
 
-# save the minified in a new file
-notepad.new()
-editor.setText(minifiedCSS)
-notepad.saveAs(fileName)
+fileName = originalFilename.split(".")
+if fileName[-2]=="min":
+	editor.beginUndoAction()
+
+	#If we have selected text, only minify that, otherwise, minify entire document
+
+	seltext = editor.getSelText()
+	seltextlen = len(seltext)
+
+	if seltextlen >= 1 :
+		minifiedCSS = cssmin(seltext)
+		editor.replaceSel(minifiedCSS)
+	else:
+		editor.setText(minifiedCSS)
+
+	editor.endUndoAction()
+else:
+
+	fileExt  = fileName[-1]
+	fileName = ".".join(fileName[:-1])+".min."+fileExt
+
+    notepad.new()
+	editor.setText(minifiedCSS)
+
+	notepad.saveAs(fileName)
+	notepad.close()
+	notepad.activateFile(originalFilename)
+	notepad.messageBox("File \""+fileName.split("\\")[-1]+"\" saved successfully.","CSSmin",MESSAGEBOXFLAGS.ICONINFORMATION)
